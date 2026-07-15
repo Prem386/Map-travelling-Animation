@@ -1,7 +1,7 @@
 // File: /tmp/investigate_svg.js
 // Investigation script to analyze SVG path and marker coordinates
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 function SvgInvestigation() {
   const svgRef = useRef(null);
@@ -129,7 +129,7 @@ function SvgInvestigation() {
         style={{ border: '1px solid #ccc' }}
       >
         <defs>
-          <style>
+          <style>{`
             .client-connection {
               stroke: #ff3366;
               stroke-width: 3px;
@@ -151,7 +151,7 @@ function SvgInvestigation() {
               stroke: #ffffff;
               stroke-width: 1px;
             }
-          </style>
+          `}</style>
         </defs>
         <g id="viewport">
           <g id="features">
