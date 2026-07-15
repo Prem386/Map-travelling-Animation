@@ -7,25 +7,6 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const clamp = (min, max, val) => Math.min(Math.max(val, min), max);
 
-// ponytail: calculate camera viewport transform based on travel distance
-const getCameraState = (loc, prevLoc) => {
-  const dx = prevLoc ? loc.x - prevLoc.x : 0;
-  const dy = prevLoc ? loc.y - prevLoc.y : 0;
-  const travelDistance = Math.sqrt(dx * dx + dy * dy);
-
-  // ponytail: linear mapping from travelDistance to scale. Max travel (500) -> 1.4, Min travel (0) -> 2.0.
-  const maxTravelDistance = 500;
-  const scaleRange = 2.0 - 1.4;
-  const rawScale = 2.0 - (travelDistance / maxTravelDistance) * scaleRange;
-  const scale = clamp(1.4, 2.0, rawScale);
-
-  return {
-    x: 500 - scale * loc.x,
-    y: 500 - scale * loc.y,
-    scale,
-  };
-};
-
 const ANIMATION = {
   marker: {
     duration: 0.8,
@@ -39,14 +20,37 @@ const ANIMATION = {
 
   camera: {
     duration: 2.0,
-    scale: 2.5,
     ease: "power2.inOut",
+    overviewScale: 1.0,
+    minScale: 1.4,
+    maxScale: 2.0,
+    viewportCenter: 500,
+    maxTravelDistance: 500,
   },
 
   overlap: {
     connectionToCamera: 0.2,
     cameraToMarker: 0.25,
   },
+};
+
+// ponytail: calculate camera viewport transform based on travel distance
+const getCameraState = (loc, prevLoc) => {
+  const dx = prevLoc ? loc.x - prevLoc.x : 0;
+  const dy = prevLoc ? loc.y - prevLoc.y : 0;
+  const travelDistance = Math.sqrt(dx * dx + dy * dy);
+
+  // ponytail: linear mapping from travelDistance to scale. Max travel -> min scale, Min travel -> max scale.
+  const maxTravelDistance = ANIMATION.camera.maxTravelDistance;
+  const scaleRange = ANIMATION.camera.maxScale - ANIMATION.camera.minScale;
+  const rawScale = ANIMATION.camera.maxScale - (travelDistance / maxTravelDistance) * scaleRange;
+  const scale = clamp(ANIMATION.camera.minScale, ANIMATION.camera.maxScale, rawScale);
+
+  return {
+    x: ANIMATION.camera.viewportCenter - scale * loc.x,
+    y: ANIMATION.camera.viewportCenter - scale * loc.y,
+    scale,
+  };
 };
 
 export default function useIndiaMapAnimation(svgRef, clientLocations) {
@@ -83,7 +87,7 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
 
       // Set initial states to prevent flashes before timeline starts
       gsap.set(svg, { opacity: 0 });
-      gsap.set(viewport, { scale: 1, x: 0, y: 0, transformOrigin: "0 0" });
+      gsap.set(viewport, { scale: ANIMATION.camera.overviewScale, x: 0, y: 0, transformOrigin: "0 0" });
       console.log("Viewport transform before timeline starts: attribute =", viewport ? viewport.getAttribute("transform") : null, "style =", viewport ? viewport.style.transform : null);
 
       // Hide all client connection paths initially before timeline starts
