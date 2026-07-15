@@ -23,10 +23,12 @@ function RouteLayer({ clientLocations = [] }) {
         // ponytail: simple automatic control point offset, tweak later if custom paths needed
         return (
           <path
-            key={`${p1.id}-${p2.id}`}
+            key={`${p1.id || i}-${p2.id || i + 1}`}
             className="client-connection"
-            data-from={from.id}
-            data-to={to.id}
+            data-from={from.id || i}
+            data-to={to.id || i + 1}
+            data-from-index={i}
+            data-to-index={i + 1}
             d={`M ${p1.x} ${p1.y}
 Q ${cx} ${cy}
   ${p2.x} ${p2.y}`}

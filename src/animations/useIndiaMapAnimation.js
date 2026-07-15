@@ -101,8 +101,8 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
       });
 
       // Hide all client location markers initially at timeline start
-      clientLocations.forEach((loc) => {
-        const marker = svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
+      clientLocations.forEach((loc, i) => {
+        const marker = svg.querySelector(`[data-index="${i}"] .client-location-marker`) || svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
         if (marker) {
           masterTimeline.set(marker, { scale: 0, opacity: 0 }, 0);
         }
@@ -113,7 +113,7 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
 
       // Build intro
       const firstLoc = clientLocations[0];
-      const firstMarker = svg.querySelector(`[data-city="${firstLoc.city}"] .client-location-marker`);
+      const firstMarker = svg.querySelector(`[data-index="0"] .client-location-marker`) || svg.querySelector(`[data-city="${firstLoc.city}"] .client-location-marker`);
 
       // 2. Camera zoom to the first client location
       if (viewport) {
@@ -154,11 +154,13 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
       for (let i = 1; i < clientLocations.length; i++) {
         const loc = clientLocations[i];
         const prevLoc = clientLocations[i - 1];
-        const marker = svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
+        const marker = svg.querySelector(`[data-index="${i}"] .client-location-marker`) || svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
 
         // 1. Draw connection line
         const connectionPath = svg.querySelector(
-          `.client-connection[data-from="${prevLoc.id}"][data-to="${loc.id}"]`
+          `.client-connection[data-from-index="${i - 1}"][data-to-index="${i}"]`
+        ) || svg.querySelector(
+          `.client-connection[data-from="${prevLoc.id || i - 1}"][data-to="${loc.id || i}"]`
         );
         if (connectionPath) {
           const length = connectionPath.getTotalLength();

@@ -1,11 +1,12 @@
 import "./App.css";
 import IndiaMap from "./components/IndiaMap/IndiaMap";
+import CoordinatePicker from "./components/CoordinatePicker/CoordinatePicker";
 import { clientLocations } from "./data/clientLocations";
 
 function App() {
-  // ponytail: render the presentational map component with client locations data
   return (
     <div className="app">
+      {/* <CoordinatePicker /> */}
       <IndiaMap clientLocations={clientLocations} />
     </div>
   );

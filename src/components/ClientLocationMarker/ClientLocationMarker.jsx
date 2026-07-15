@@ -1,9 +1,9 @@
 import "./ClientLocationMarker.css";
 
-function ClientLocationMarker({ x, y, city }) {
+function ClientLocationMarker({ x, y, city, index }) {
   // ponytail: render nested groups for translation separation and future GSAP animation
   return (
-    <g transform={`translate(${x}, ${y})`} data-city={city}>
+    <g transform={`translate(${x}, ${y})`} data-city={city} data-index={index}>
       <g className="client-location-marker">
         <g className="client-location-pulse" />
         <circle className="client-location-ring" r={10} />

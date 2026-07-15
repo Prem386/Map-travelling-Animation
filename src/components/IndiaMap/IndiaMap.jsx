@@ -106,7 +106,8 @@ function IndiaMap({ clientLocations = [] }) {
           <g id="markers">
             {clientLocations.map((clientLocation, index) => (
               <ClientLocationMarker
-                key={index}
+                key={clientLocation.id || index}
+                index={index}
                 x={clientLocation.x}
                 y={clientLocation.y}
                 city={clientLocation.city}
