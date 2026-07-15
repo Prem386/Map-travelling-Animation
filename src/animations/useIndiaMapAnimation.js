@@ -44,19 +44,28 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
       const prefersReducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
+      console.log("prefersReducedMotion:", prefersReducedMotion);
 
+      const viewport = svg.querySelector("#viewport");
+
+      console.log("GSAP timeline created");
       const masterTimeline = gsap.timeline({
         paused: true,
         defaults: {
           ease: "power2.out",
         },
+        onUpdate: () => {
+          console.log("Timeline progress update:", masterTimeline.progress().toFixed(2));
+        },
+        onComplete: () => {
+          console.log("Timeline completed");
+        },
       });
-
-      const viewport = svg.querySelector("#viewport");
 
       // Set initial states to prevent flashes before timeline starts
       gsap.set(svg, { opacity: 0 });
       gsap.set(viewport, { scale: 1, x: 0, y: 0, transformOrigin: "0 0" });
+      console.log("Viewport transform before timeline starts: attribute =", viewport ? viewport.getAttribute("transform") : null, "style =", viewport ? viewport.style.transform : null);
 
       // Hide all client location markers initially at timeline start
       clientLocations.forEach((loc) => {
@@ -88,6 +97,9 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
                 scale: scale,
                 duration: ANIMATION.camera.duration,
                 ease: ANIMATION.camera.ease,
+                onComplete: () => {
+                  console.log("Viewport transform after intro camera tween completes: attribute =", viewport.getAttribute("transform"), "style =", viewport.style.transform);
+                },
               }
             );
           }
@@ -176,6 +188,8 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
         }
       });
 
+      console.log("Timeline total duration:", masterTimeline.duration());
+
       timelineRef.current = masterTimeline;
 
       // Reduced motion: skip to final state immediately
@@ -190,7 +204,12 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
         start: "top 70%",
         end: "bottom center",
         once: true,
-        onEnter: () => masterTimeline.play(),
+        onEnter: () => {
+          console.log("ScrollTrigger onEnter fires");
+          console.log("Timeline progress immediately before play():", masterTimeline.progress());
+          masterTimeline.play();
+          console.log("Timeline progress immediately after play():", masterTimeline.progress());
+        },
       });
     },
     { dependencies: [clientLocations], scope: svgRef }
