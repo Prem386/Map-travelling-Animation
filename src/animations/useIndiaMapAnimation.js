@@ -209,6 +209,23 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
         }
       }
 
+      // ponytail: ending sequence to restore overview viewport scale/position and hold
+      if (viewport) {
+        masterTimeline.to(
+          viewport,
+          {
+            x: 0,
+            y: 0,
+            scale: ANIMATION.camera.overviewScale,
+            duration: ANIMATION.camera.duration,
+            ease: ANIMATION.camera.ease,
+          },
+          "+=1.0"
+        );
+
+        masterTimeline.to({}, { duration: 1.5 });
+      }
+
       console.log("Timeline total duration:", masterTimeline.duration());
 
       timelineRef.current = masterTimeline;
