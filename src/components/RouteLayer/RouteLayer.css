@@ -1,0 +1,7 @@
+/* RouteLayer styling */
+.client-connection {
+  stroke: #ff3366;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.6));
+}

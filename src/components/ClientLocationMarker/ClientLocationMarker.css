@@ -1,0 +1,18 @@
+.client-location-marker {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.client-location-ring {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2px;
+  /* ponytail: premium glow that matches route line accent */
+  filter: drop-shadow(0 0 3px rgba(255, 51, 102, 0.8));
+}
+
+.client-location-dot {
+  fill: #ff3366;
+  stroke: #ffffff;
+  stroke-width: 1px;
+}

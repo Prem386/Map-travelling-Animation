@@ -1,0 +1,53 @@
+.coordinate-picker {
+  position: relative;
+  width: 100%;
+}
+
+.coordinate-picker object,
+.coordinate-picker .india-map-svg {
+  pointer-events: none;
+}
+
+.coordinate-picker-display {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #38bdf8;
+  padding: 12px 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  line-height: 1.5;
+}
+
+.coordinate-object {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.copy-button {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.copy-button:hover {
+  background: #0369a1;
+}
