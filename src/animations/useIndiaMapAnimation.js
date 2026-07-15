@@ -7,6 +7,25 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const clamp = (min, max, val) => Math.min(Math.max(val, min), max);
 
+// ponytail: calculate camera viewport transform based on travel distance
+const getCameraState = (loc, prevLoc) => {
+  const dx = prevLoc ? loc.x - prevLoc.x : 0;
+  const dy = prevLoc ? loc.y - prevLoc.y : 0;
+  const travelDistance = Math.sqrt(dx * dx + dy * dy);
+
+  // ponytail: linear mapping from travelDistance to scale. Max travel (500) -> 1.4, Min travel (0) -> 2.0.
+  const maxTravelDistance = 500;
+  const scaleRange = 2.0 - 1.4;
+  const rawScale = 2.0 - (travelDistance / maxTravelDistance) * scaleRange;
+  const scale = clamp(1.4, 2.0, rawScale);
+
+  return {
+    x: 500 - scale * loc.x,
+    y: 500 - scale * loc.y,
+    scale,
+  };
+};
+
 const ANIMATION = {
   marker: {
     duration: 0.8,
@@ -67,6 +86,16 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
       gsap.set(viewport, { scale: 1, x: 0, y: 0, transformOrigin: "0 0" });
       console.log("Viewport transform before timeline starts: attribute =", viewport ? viewport.getAttribute("transform") : null, "style =", viewport ? viewport.style.transform : null);
 
+      // Hide all client connection paths initially before timeline starts
+      const connectionPaths = svg.querySelectorAll(".client-connection");
+      connectionPaths.forEach((path) => {
+        const length = path.getTotalLength();
+        gsap.set(path, {
+          strokeDasharray: length,
+          strokeDashoffset: length,
+        });
+      });
+
       // Hide all client location markers initially at timeline start
       clientLocations.forEach((loc) => {
         const marker = svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
@@ -85,15 +114,13 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
         if (index === 0) {
           // 2. Camera zoom to the first client location
           if (viewport) {
-            const scale = 2.0; // ponytail: lazy default max zoom for first location
-            const tx = 500 - scale * loc.x;
-            const ty = 500 - scale * loc.y;
+            const { x, y, scale } = getCameraState(loc);
 
             masterTimeline.to(
               viewport,
               {
-                x: tx,
-                y: ty,
+                x: x,
+                y: y,
                 scale: scale,
                 duration: ANIMATION.camera.duration,
                 ease: ANIMATION.camera.ease,
@@ -143,24 +170,13 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
 
           // 2. Animate viewport center toward current client
           if (viewport) {
-            const dx = loc.x - prevLoc.x;
-            const dy = loc.y - prevLoc.y;
-            const travelDistance = Math.sqrt(dx * dx + dy * dy);
-
-            // ponytail: linear mapping from travelDistance to scale. Max travel (500) -> 1.4, Min travel (0) -> 2.0.
-            const maxTravelDistance = 500;
-            const scaleRange = 2.0 - 1.4;
-            const rawScale = 2.0 - (travelDistance / maxTravelDistance) * scaleRange;
-            const scale = clamp(1.4, 2.0, rawScale);
-
-            const tx = 500 - scale * loc.x;
-            const ty = 500 - scale * loc.y;
+            const { x, y, scale } = getCameraState(loc, prevLoc);
 
             masterTimeline.to(
               viewport,
               {
-                x: tx,
-                y: ty,
+                x: x,
+                y: y,
                 scale: scale,
                 transformOrigin: "0 0",
                 duration: ANIMATION.camera.duration,
