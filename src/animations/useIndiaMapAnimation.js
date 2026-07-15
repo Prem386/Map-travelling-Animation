@@ -107,102 +107,103 @@ export default function useIndiaMapAnimation(svgRef, clientLocations) {
       // 1. Map fade-in
       masterTimeline.to(svg, { opacity: 1, duration: 1.5 });
 
-      // Build dynamic sequenced animation timeline
-      clientLocations.forEach((loc, index) => {
+      // Build intro
+      const firstLoc = clientLocations[0];
+      const firstMarker = svg.querySelector(`[data-city="${firstLoc.city}"] .client-location-marker`);
+
+      // 2. Camera zoom to the first client location
+      if (viewport) {
+        const { x, y, scale } = getCameraState(firstLoc);
+
+        masterTimeline.to(
+          viewport,
+          {
+            x: x,
+            y: y,
+            scale: scale,
+            duration: ANIMATION.camera.duration,
+            ease: ANIMATION.camera.ease,
+            onComplete: () => {
+              console.log("Viewport transform after intro camera tween completes: attribute =", viewport.getAttribute("transform"), "style =", viewport.style.transform);
+            },
+          }
+        );
+      }
+
+      // 3. Reveal first marker
+      if (firstMarker) {
+        masterTimeline.fromTo(
+          firstMarker,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: ANIMATION.marker.duration,
+            ease: ANIMATION.marker.ease,
+            transformOrigin: "0px 0px",
+          },
+          "-=" + ANIMATION.overlap.cameraToMarker
+        );
+      }
+
+      // Build travel sequence
+      for (let i = 1; i < clientLocations.length; i++) {
+        const loc = clientLocations[i];
+        const prevLoc = clientLocations[i - 1];
         const marker = svg.querySelector(`[data-city="${loc.city}"] .client-location-marker`);
 
-        if (index === 0) {
-          // 2. Camera zoom to the first client location
-          if (viewport) {
-            const { x, y, scale } = getCameraState(loc);
+        // 1. Draw connection line
+        const connectionPath = svg.querySelector(
+          `.client-connection[data-from="${prevLoc.id}"][data-to="${loc.id}"]`
+        );
+        if (connectionPath) {
+          const length = connectionPath.getTotalLength();
+          masterTimeline.set(connectionPath, {
+            strokeDasharray: length,
+            strokeDashoffset: length,
+          });
 
-            masterTimeline.to(
-              viewport,
-              {
-                x: x,
-                y: y,
-                scale: scale,
-                duration: ANIMATION.camera.duration,
-                ease: ANIMATION.camera.ease,
-                onComplete: () => {
-                  console.log("Viewport transform after intro camera tween completes: attribute =", viewport.getAttribute("transform"), "style =", viewport.style.transform);
-                },
-              }
-            );
-          }
-
-          // 3. Reveal first marker
-          if (marker) {
-            masterTimeline.fromTo(
-              marker,
-              { scale: 0, opacity: 0 },
-              {
-                scale: 1,
-                opacity: 1,
-                duration: ANIMATION.marker.duration,
-                ease: ANIMATION.marker.ease,
-                transformOrigin: "0px 0px",
-              },
-              "-=" + ANIMATION.overlap.cameraToMarker
-            );
-          }
-        } else {
-          // Client index > 0: Draw Connection -> Move Camera -> Reveal Marker
-          const prevLoc = clientLocations[index - 1];
-
-          // 1. Draw connection line
-          const connectionPath = svg.querySelector(
-            `.client-connection[data-from="${prevLoc.id}"][data-to="${loc.id}"]`
-          );
-          if (connectionPath) {
-            const length = connectionPath.getTotalLength();
-            masterTimeline.set(connectionPath, {
-              strokeDasharray: length,
-              strokeDashoffset: length,
-            });
-
-            masterTimeline.to(connectionPath, {
-              strokeDashoffset: 0,
-              duration: ANIMATION.connection.duration,
-              ease: ANIMATION.connection.ease,
-            });
-          }
-
-          // 2. Animate viewport center toward current client
-          if (viewport) {
-            const { x, y, scale } = getCameraState(loc, prevLoc);
-
-            masterTimeline.to(
-              viewport,
-              {
-                x: x,
-                y: y,
-                scale: scale,
-                transformOrigin: "0 0",
-                duration: ANIMATION.camera.duration,
-                ease: ANIMATION.camera.ease,
-              },
-              "<" + ANIMATION.overlap.connectionToCamera // Start panning shortly after connection animation starts
-            );
-          }
-
-          // 3. Reveal current marker
-          if (marker) {
-            masterTimeline.fromTo(
-              marker,
-              { scale: 0, opacity: 0 },
-              {
-                scale: 1,
-                opacity: 1,
-                duration: ANIMATION.marker.duration,
-                ease: ANIMATION.marker.ease,
-                transformOrigin: "0px 0px",
-              },
-              "-=" + ANIMATION.overlap.cameraToMarker
-            );
-          }
+          masterTimeline.to(connectionPath, {
+            strokeDashoffset: 0,
+            duration: ANIMATION.connection.duration,
+            ease: ANIMATION.connection.ease,
+          });
         }
-      });
+
+        // 2. Animate viewport center toward current client
+        if (viewport) {
+          const { x, y, scale } = getCameraState(loc, prevLoc);
+
+          masterTimeline.to(
+            viewport,
+            {
+              x: x,
+              y: y,
+              scale: scale,
+              transformOrigin: "0 0",
+              duration: ANIMATION.camera.duration,
+              ease: ANIMATION.camera.ease,
+            },
+            "<" + ANIMATION.overlap.connectionToCamera
+          );
+        }
+
+        // 3. Reveal current marker
+        if (marker) {
+          masterTimeline.fromTo(
+            marker,
+            { scale: 0, opacity: 0 },
+            {
+              scale: 1,
+              opacity: 1,
+              duration: ANIMATION.marker.duration,
+              ease: ANIMATION.marker.ease,
+              transformOrigin: "0px 0px",
+            },
+            "-=" + ANIMATION.overlap.cameraToMarker
+          );
+        }
+      }
 
       console.log("Timeline total duration:", masterTimeline.duration());
 
